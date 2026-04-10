@@ -1,6 +1,6 @@
 # Home Assistant automation:
 # When any selected Hue light is powered on (state changes from off -> on),
-# set a night-safe red between 1:00 AM and 6:00 AM; otherwise use neutral sunlight.
+# set a night-safe red between 11:00 PM and 6:00 AM; otherwise use neutral sunlight.
 # This file is formatted for `automations.yaml` / package include as a LIST item.
 # Do not wrap it in an additional top-level `automation:` key.
 
@@ -27,7 +27,7 @@
     - choose:
         - conditions:
             - condition: time
-              after: "01:00:00"
+              after: "23:00:00"
               before: "06:00:00"
           sequence:
             - service: light.turn_on
