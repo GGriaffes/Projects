@@ -1,52 +1,53 @@
 # Home Assistant automation:
 # When any selected Hue light is powered on (state changes from off -> on),
 # set a night-safe red between 1:00 AM and 6:00 AM; otherwise use neutral sunlight.
+# This file is formatted for `automations.yaml` / package include as a LIST item.
+# Do not wrap it in an additional top-level `automation:` key.
 
-automation:
-  - id: hue_power_on_color_profile
-    alias: Hue Power-On Color Profile (Night Red / Day Neutral)
-    description: >-
-      Applies a soft red profile overnight and a neutral sunlight profile
-      during all other hours whenever one of the selected Hue lights turns on.
-    mode: queued
+- id: hue_power_on_color_profile
+  alias: Hue Power-On Color Profile (Night Red / Day Neutral)
+  description: >-
+    Applies a soft red profile overnight and a neutral sunlight profile
+    during all other hours whenever one of the selected Hue lights turns on.
+  mode: queued
 
-    trigger:
-      - platform: state
-        entity_id:
-          # Replace these 5 placeholders with your actual Hue light entity IDs.
-          - light.placeholder_light_1
-          - light.placeholder_light_2
-          - light.placeholder_light_3
-          - light.placeholder_light_4
-          - light.placeholder_light_5
-        from: "off"
-        to: "on"
+  trigger:
+    - platform: state
+      entity_id:
+        # Replace these 5 placeholders with your actual Hue light entity IDs.
+        - light.placeholder_light_1
+        - light.placeholder_light_2
+        - light.placeholder_light_3
+        - light.placeholder_light_4
+        - light.placeholder_light_5
+      from: "off"
+      to: "on"
 
-    action:
-      - choose:
-          - conditions:
-              - condition: time
-                after: "01:00:00"
-                before: "06:00:00"
-            sequence:
-              - service: light.turn_on
-                target:
-                  entity_id: "{{ trigger.entity_id }}"
-                  # trigger.entity_id = the exact light that just turned on,
-                  # so only that one light gets updated.
-                data:
-                  # Overnight profile: soft red and low brightness.
-                  rgb_color: [255, 56, 56]
-                  brightness_pct: 15
-                  transition: 1
-        default:
-          - service: light.turn_on
-            target:
-              entity_id: "{{ trigger.entity_id }}"
-              # trigger.entity_id = the exact light that just turned on,
-              # so only that one light gets updated.
-            data:
-              # All other hours: neutral sunlight white.
-              color_temp_kelvin: 4000
-              brightness_pct: 60
-              transition: 1
+  action:
+    - choose:
+        - conditions:
+            - condition: time
+              after: "01:00:00"
+              before: "06:00:00"
+          sequence:
+            - service: light.turn_on
+              target:
+                entity_id: "{{ trigger.entity_id }}"
+                # trigger.entity_id = the exact light that just turned on,
+                # so only that one light gets updated.
+              data:
+                # Overnight profile: soft red and low brightness.
+                rgb_color: [255, 56, 56]
+                brightness_pct: 15
+                transition: 1
+      default:
+        - service: light.turn_on
+          target:
+            entity_id: "{{ trigger.entity_id }}"
+            # trigger.entity_id = the exact light that just turned on,
+            # so only that one light gets updated.
+          data:
+            # All other hours: neutral sunlight white.
+            color_temp_kelvin: 4000
+            brightness_pct: 60
+            transition: 1
