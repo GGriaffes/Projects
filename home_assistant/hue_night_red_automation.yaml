@@ -47,9 +47,8 @@
                   - condition: template
                     value_template: "{{ is_state(repeat.item, 'on') }}"
                   - service: light.turn_on
-                    target:
-                      entity_id: "{{ repeat.item }}"
                     data:
+                      entity_id: "{{ repeat.item }}"
                       rgb_color: [255, 56, 56]
                       brightness_pct: 15
                       transition: 2
@@ -61,11 +60,10 @@
               before: "06:00:00"
           sequence:
             - service: light.turn_on
-              target:
-                entity_id: "{{ trigger.entity_id }}"
+              data:
                 # trigger.entity_id = the exact light that just turned on,
                 # so only that one light gets updated.
-              data:
+                entity_id: "{{ trigger.entity_id }}"
                 rgb_color: [255, 56, 56]
                 brightness_pct: 15
                 transition: 1
@@ -73,9 +71,8 @@
       # All other power-on events use a neutral sunlight white profile.
       default:
         - service: light.turn_on
-          target:
-            entity_id: "{{ trigger.entity_id }}"
           data:
+            entity_id: "{{ trigger.entity_id }}"
             color_temp_kelvin: 4000
             brightness_pct: 60
             transition: 1
