@@ -1,0 +1,69 @@
+# Home Assistant automations for Hue night/day profile handling.
+# File is formatted for `automations.yaml` include as a LIST.
+
+# 1) Power-on profile automation:
+#    - Overnight (23:00-06:00): soft red
+#    - All other hours: neutral sunlight
+- id: hue_power_on_color_profile
+  alias: Hue Power-On Color Profile (Night Red / Day Neutral)
+  mode: queued
+
+  trigger:
+    - platform: state
+      entity_id:
+        - light.hue_color_downlight_1
+        - light.hue_color_downlight_4
+        - light.hue_color_downlight_2
+        - light.hue_color_downlight_3
+        - light.briars_lamp
+      from: "off"
+      to: "on"
+
+  action:
+    - choose:
+        - conditions:
+            - condition: time
+              after: "23:00:00"
+              before: "06:00:00"
+          sequence:
+            - service: light.turn_on
+              data:
+                entity_id: "{{ trigger.entity_id }}"
+                rgb_color: [255, 56, 56]
+                brightness_pct: 15
+                transition: 1
+      default:
+        - service: light.turn_on
+          data:
+            entity_id: "{{ trigger.entity_id }}"
+            color_temp_kelvin: 4000
+            brightness_pct: 60
+            transition: 1
+
+# 2) 11:00 PM enforcement automation:
+#    Shift only currently-on lights in the group to red at bedtime.
+- id: hue_11pm_night_shift
+  alias: Hue 11PM Night Shift (Already-On Lights)
+  mode: single
+
+  trigger:
+    - platform: time
+      at: "23:00:00"
+
+  action:
+    - service: light.turn_on
+      data:
+        entity_id: >-
+          {{ expand(
+              'light.hue_color_downlight_1',
+              'light.hue_color_downlight_4',
+              'light.hue_color_downlight_2',
+              'light.hue_color_downlight_3',
+              'light.briars_lamp'
+            )
+            | selectattr('state', 'eq', 'on')
+            | map(attribute='entity_id')
+            | list }}
+        rgb_color: [255, 56, 56]
+        brightness_pct: 15
+        transition: 2
