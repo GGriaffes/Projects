@@ -1,0 +1,105 @@
+alias: Master Bedroom Hue Adaptive Color On
+description: ""
+triggers:
+  - trigger: state
+    entity_id:
+      - light.grants_side
+      - light.ivys_side
+      - light.reading_light
+    to: "on"
+  - trigger: time
+    at: "05:00:00"
+  - trigger: time
+    at: "12:00:00"
+  - trigger: time
+    at: "18:00:00"
+  - trigger: time
+    at: "21:00:00"
+  - trigger: time
+    at: "22:00:00"
+conditions:
+  - condition: or
+    conditions:
+      - condition: state
+        entity_id: light.grants_side
+        state: "on"
+      - condition: state
+        entity_id: light.ivys_side
+        state: "on"
+      - condition: state
+        entity_id: light.reading_light
+        state: "on"
+actions:
+  - choose:
+      - conditions:
+          - condition: time
+            after: "05:00:00"
+            before: "12:00:00"
+        sequence:
+          - action: light.turn_on
+            target:
+              entity_id:
+                - light.grants_side
+                - light.ivys_side
+                - light.reading_light
+            data:
+              brightness_pct: 92
+              rgb_color: [255, 240, 220]
+              transition: 3
+      - conditions:
+          - condition: time
+            after: "12:00:00"
+            before: "18:00:00"
+        sequence:
+          - action: light.turn_on
+            target:
+              entity_id:
+                - light.grants_side
+                - light.ivys_side
+                - light.reading_light
+            data:
+              brightness_pct: 82
+              rgb_color: [255, 232, 205]
+              transition: 3
+      - conditions:
+          - condition: time
+            after: "18:00:00"
+            before: "21:00:00"
+        sequence:
+          - action: light.turn_on
+            target:
+              entity_id:
+                - light.grants_side
+                - light.ivys_side
+                - light.reading_light
+            data:
+              brightness_pct: 56
+              rgb_color: [255, 218, 185]
+              transition: 4
+      - conditions:
+          - condition: time
+            after: "21:00:00"
+            before: "22:00:00"
+        sequence:
+          - action: light.turn_on
+            target:
+              entity_id:
+                - light.grants_side
+                - light.ivys_side
+                - light.reading_light
+            data:
+              brightness_pct: 42
+              rgb_color: [255, 205, 170]
+              transition: 4
+    default:
+      - action: light.turn_on
+        target:
+          entity_id:
+            - light.grants_side
+            - light.ivys_side
+            - light.reading_light
+        data:
+          brightness_pct: 22
+          rgb_color: [255, 190, 155]
+          transition: 5
+mode: restart
