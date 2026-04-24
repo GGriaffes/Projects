@@ -1,22 +1,16 @@
-# Home Assistant automation:
-# 1) When any selected Hue light is powered on, apply the proper profile for the time.
-# 2) At 11:00 PM, shift any selected lights that are already ON to the night-safe red profile.
-# This file is formatted for `automations.yaml` / package include as a LIST item.
-# Do not wrap it in an additional top-level `automation:` key.
+# Home Assistant automations for Hue night/day profile handling.
+# File is formatted for `automations.yaml` include as a LIST.
 
+# 1) Power-on profile automation:
+#    - Overnight (23:00-06:00): soft red
+#    - All other hours: neutral sunlight
 - id: hue_power_on_color_profile
   alias: Hue Power-On Color Profile (Night Red / Day Neutral)
-  description: >-
-    Applies a soft red profile overnight and a neutral sunlight profile
-    during all other hours whenever one of the selected Hue lights turns on,
-    and forces currently-on selected lights to shift to red at 11:00 PM.
   mode: queued
 
   trigger:
-    - id: light_powered_on
-      platform: state
+    - platform: state
       entity_id:
-        # Update if your actual entity IDs differ from these slugified names.
         - light.hue_color_downlight_1
         - light.hue_color_downlight_4
         - light.hue_color_downlight_2
@@ -25,35 +19,8 @@
       from: "off"
       to: "on"
 
-    - id: nightly_shift
-      platform: time
-      at: "23:00:00"
-
   action:
     - choose:
-        # At 11:00 PM, shift only lights that are already ON to the red night profile.
-        - conditions:
-            - condition: trigger
-              id: nightly_shift
-          sequence:
-            - repeat:
-                for_each:
-                  - light.hue_color_downlight_1
-                  - light.hue_color_downlight_4
-                  - light.hue_color_downlight_2
-                  - light.hue_color_downlight_3
-                  - light.briars_lamp
-                sequence:
-                  - condition: template
-                    value_template: "{{ is_state(repeat.item, 'on') }}"
-                  - service: light.turn_on
-                    data:
-                      entity_id: "{{ repeat.item }}"
-                      rgb_color: [255, 56, 56]
-                      brightness_pct: 15
-                      transition: 2
-
-        # When a selected light is powered on overnight, apply night red.
         - conditions:
             - condition: time
               after: "23:00:00"
@@ -61,14 +28,10 @@
           sequence:
             - service: light.turn_on
               data:
-                # trigger.entity_id = the exact light that just turned on,
-                # so only that one light gets updated.
                 entity_id: "{{ trigger.entity_id }}"
                 rgb_color: [255, 56, 56]
                 brightness_pct: 15
                 transition: 1
-
-      # All other power-on events use a neutral sunlight white profile.
       default:
         - service: light.turn_on
           data:
@@ -76,3 +39,31 @@
             color_temp_kelvin: 4000
             brightness_pct: 60
             transition: 1
+
+# 2) 11:00 PM enforcement automation:
+#    Shift only currently-on lights in the group to red at bedtime.
+- id: hue_11pm_night_shift
+  alias: Hue 11PM Night Shift (Already-On Lights)
+  mode: single
+
+  trigger:
+    - platform: time
+      at: "23:00:00"
+
+  action:
+    - service: light.turn_on
+      data:
+        entity_id: >-
+          {{ expand(
+              'light.hue_color_downlight_1',
+              'light.hue_color_downlight_4',
+              'light.hue_color_downlight_2',
+              'light.hue_color_downlight_3',
+              'light.briars_lamp'
+            )
+            | selectattr('state', 'eq', 'on')
+            | map(attribute='entity_id')
+            | list }}
+        rgb_color: [255, 56, 56]
+        brightness_pct: 15
+        transition: 2
