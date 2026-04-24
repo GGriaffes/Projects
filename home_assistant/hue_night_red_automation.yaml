@@ -16,12 +16,12 @@
     - id: light_powered_on
       platform: state
       entity_id:
-        # Replace these 5 placeholders with your actual Hue light entity IDs.
-        - light.placeholder_light_1
-        - light.placeholder_light_2
-        - light.placeholder_light_3
-        - light.placeholder_light_4
-        - light.placeholder_light_5
+        # Update if your actual entity IDs differ from these slugified names.
+        - light.hue_color_downlight_1
+        - light.hue_color_downlight_4
+        - light.hue_color_downlight_2
+        - light.hue_color_downlight_3
+        - light.briars_lamp
       from: "off"
       to: "on"
 
@@ -38,11 +38,11 @@
           sequence:
             - repeat:
                 for_each:
-                  - light.placeholder_light_1
-                  - light.placeholder_light_2
-                  - light.placeholder_light_3
-                  - light.placeholder_light_4
-                  - light.placeholder_light_5
+                  - light.hue_color_downlight_1
+                  - light.hue_color_downlight_4
+                  - light.hue_color_downlight_2
+                  - light.hue_color_downlight_3
+                  - light.briars_lamp
                 sequence:
                   - condition: template
                     value_template: "{{ is_state(repeat.item, 'on') }}"
